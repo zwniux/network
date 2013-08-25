@@ -4,10 +4,11 @@
 import socket
 
 def get_dest_host(message):
-  first_line = message.split('\n')[1]
-  dest_host= first_line.split(' ')[1]
-  print dest_host
-  return dest_host
+  line = message.split('\n')
+  if len(line) > 2:
+    first_line = line[1]
+    dest_host= first_line.split(' ')[1].strip()
+    return dest_host
 
 proxy_port = 7070
 proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,11 +20,12 @@ while True:
   connectSocket, addr = proxy_socket.accept()
   message = connectSocket.recv(2048)
   dest_host = get_dest_host(message)
-  sendSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  sendSocket.connect((dest_host, 80))
-  sendSocket.send(message)
-  recvMsg = sendSocket.recv(4096)
-  connectSocket.send(recvMsg)
-  sendSocket.close()
+  if dest_host != None:
+    sendSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sendSocket.connect((dest_host, 80))
+    sendSocket.send(message)
+    recvMsg = sendSocket.recv(1000000)
+    connectSocket.send(recvMsg)
+    sendSocket.close()
   connectSocket.close()
 
